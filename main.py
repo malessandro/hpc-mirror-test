@@ -15,3 +15,4 @@ debut = time.time()
 total = sum(i * i for i in range(10_000_000))
 print(f"somme des carrés : {total} en {time.time() - debut:.1f} s")
 "# modifica" 
+"# modifica 2" 
