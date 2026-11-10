@@ -1,0 +1,25 @@
+#!/bin/bash
+# Script de job du projet démo, soumis tel quel par le démon (`hpc run job.pbs`).
+# Le démon impose le nom du job et le log (-N, -o, -j oe) et fournit UV_CACHE_DIR,
+# UV_DEFAULT_INDEX, UV_SYSTEM_CERTS, SSL_CERT_FILE (certificat de l'index vérifié), UV_LINK_MODE,
+# HPC_QUEUE_ID, HPC_REQUEST_ID, HPC_RUN_DIR et HPC_RESULTS_DIR (résultats à rapatrier, mesurés par le
+# démon à la fin du job).
+#PBS -l select=1:ncpus=1:mem=1gb
+#PBS -l walltime=00:10:00
+
+set -eo pipefail
+# PBS démarre dans la home : revenir au clone du projet au SHA demandé
+cd "$PBS_O_WORKDIR"
+
+module purge
+module load mamba uv
+eval "$(conda shell.bash hook)"
+# Env créé par chemin sur /data (mamba create -n viserait l'emplacement partagé)
+ENV="/data/ssa/users/$(id -un)/envs/hpc-demo"
+[ -d "$ENV" ] || mamba create -y -q -p "$ENV" python=3.12
+conda activate "$ENV"
+
+# Sans --frozen : le uv.lock n'est pas versionné, uv le résout sur le nœud
+uv sync
+# Sortie copiée dans le log et dans les résultats (récupérés par `hpc pull-results <id>`)
+uv run python main.py | tee "$HPC_RESULTS_DIR/sortie.txt"

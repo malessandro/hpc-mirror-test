@@ -1,0 +1,8 @@
+#!/bin/bash
+# Dernier job enfant de la démo « campagne » (campagne.pbs), lancé après les deux tranches (afterok).
+#PBS -l select=1:ncpus=1:mem=1gb
+#PBS -l walltime=00:05:00
+
+set -eo pipefail
+cd "$PBS_O_WORKDIR"
+cat "$HPC_RESULTS_DIR"/tranche-*.txt | tee "$HPC_RESULTS_DIR/synthese.txt"

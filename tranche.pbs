@@ -1,0 +1,8 @@
+#!/bin/bash
+# Job enfant de la démo « campagne » (campagne.pbs) : une tranche du calcul, TRANCHE = a ou b.
+#PBS -l select=1:ncpus=1:mem=1gb
+#PBS -l walltime=00:05:00
+
+set -eo pipefail
+cd "$PBS_O_WORKDIR"
+echo "tranche $TRANCHE sur $(hostname), job $PBS_JOBID" | tee "$HPC_RESULTS_DIR/tranche-$TRANCHE.txt"

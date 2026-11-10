@@ -1,0 +1,17 @@
+#!/bin/bash
+# Démo « campagne » : le job parent soumet trois jobs enfants puis rend la main, sans rien réserver pendant
+# la campagne. `"$HPC_SUBMIT_CHILD"` fait `qsub` avec les mêmes arguments et ajoute le Job ID à
+# $HPC_CHILD_JOBS : le démon suit ces jobs, la requête reste `running` jusqu'au dernier, puis les
+# résultats des trois (écrits dans $HPC_RESULTS_DIR) sont mesurés et archivés.
+#   hpc run campagne.pbs
+#PBS -l select=1:ncpus=1:mem=1gb
+#PBS -l walltime=00:05:00
+
+set -eo pipefail
+cd "$PBS_O_WORKDIR"
+
+# -v HPC_RESULTS_DIR : variable reprise de l'environnement du parent (qsub ne la transmet pas seul)
+a=$("$HPC_SUBMIT_CHILD" -N tranche-a -v HPC_RESULTS_DIR,TRANCHE=a tranche.pbs)
+b=$("$HPC_SUBMIT_CHILD" -N tranche-b -v HPC_RESULTS_DIR,TRANCHE=b tranche.pbs)
+# Ne démarre qu'après la réussite des deux tranches
+"$HPC_SUBMIT_CHILD" -N synthese -W "depend=afterok:$a:$b" -v HPC_RESULTS_DIR synthese.pbs
